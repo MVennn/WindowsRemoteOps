@@ -79,7 +79,7 @@ def run(cmd: list, timeout: int = TIMEOUT) -> tuple:
     except subprocess.TimeoutExpired:
         return -1, "", "timeout"
     except FileNotFoundError as exc:
-        return -2, "", "找不到命令：%s" % exc
+        return -2, "", "找不到命令：%s（%s）" % (cmd[0], exc)
 
 
 def hint_for(stderr: str) -> str:
@@ -195,6 +195,13 @@ def shutil_which(name: str) -> bool:
 
 
 def main() -> int:
+    # 控制台代码页不是 UTF-8（中文 Windows 默认 GBK）且输出被重定向 / 管道时，
+    # ✓/✗ 会让 print 直接抛 UnicodeEncodeError，把诊断输出拦腰截断。
+    # 统一按 UTF-8 输出、不可编码字符用替换符，保证失败时也能拿到完整报告。
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
     parser = argparse.ArgumentParser(description="验证到 Windows 主机的 SSH 通道")
     parser.add_argument("--conf", default=CONF_DEFAULT, help="主机配置路径（默认 host/host.conf）")
     parser.add_argument("--host", help="覆盖配置里的 host")
@@ -216,7 +223,15 @@ def main() -> int:
 
     args.host = args.host or conf.get("host", "")
     args.user = args.user or conf.get("user", "")
-    args.port = args.port or int(conf.get("port") or 22)
+    if args.port is None:
+        # 显式判 None，不能写 `args.port or ...`：假值（如 --port 0）会被静默
+        # 换成默认端口，测的根本不是用户指定的端口。
+        try:
+            args.port = int(conf.get("port") or 22)
+        except ValueError:
+            print("✗ %s 里的 port 不是数字：%s" % (args.conf, conf.get("port")), file=sys.stderr)
+            print("  条目：T8", file=sys.stderr)
+            return 2
     args.identity = args.identity or conf.get("identity", "")
 
     if is_placeholder(args.host) or is_placeholder(args.user):
