@@ -2,13 +2,36 @@
 
 > **一句话**：本仓唯一的进度台账 —— 当前在做什么、做到哪、卡在哪；接手时先读这里。
 
-状态: 已完成（建仓 + 入库）
+状态: 已完成（建仓 + 入库 + 首次代码审查）
 
 ## 任务目标
 
 按系列仓规范（基准仓的门面骨架 + 系列仓的 docs 四分类约定）
 新建 `WindowsRemoteOps`，承载「局域网 Windows 主机远程接入与运维」这条线。
 全程遵守脱敏红线：仓库内零设备标识，真机实测值只放 `.work/` 与不入库的 `host/host.conf`。
+
+## 批次 3：首次代码审查 + 修复（2026-11-01）
+
+- [x] 通读 AGENTS.md / DOC-RULES / PITFALLS 拿红线；审查 `host/bootstrap-openssh.ps1`、
+      `tools/` 四脚本、`.github/workflows/ci.yml`、`host.conf.example` 与
+      `verify-host.py` 读取字段的一致性（一致，无需改）
+- [x] 修复 `bootstrap-openssh.ps1`：防火墙规则已存在时连端口过滤器一起改写
+      （此前 `-Port` 非默认值不会被应用却报成功）、`icacls` 校验退出码（P1）、
+      授权文件无尾换行时先补换行（此前新公钥会粘到上一行，两把一起失效）、
+      `-DisablePasswordAuth` 指令缺省时插到首个 `Match` 块之前（P11 假成功）、
+      重启前 `sshd -t` 预校验失败即回滚备份、重启后核对 Running、
+      管理员组枚举失败时当前用户回退进程令牌判定 / 其它账户直接中止、
+      `$profile` 遮蔽自动变量改名 `$netProfiles`、Summary 对未安装服务容错
+- [x] 修复 `verify-host.py`：输出被重定向到非 UTF-8 代码页（GBK）时不再中断、
+      conf 里 port 非数字报 T8 退出码 2、`--port` 显式判 None（假值不再静默回退
+      默认端口）、`FileNotFoundError` 带上命令名
+- [x] 修复 `check-docs.py`：「一句话」引言块只查文件头部 10 行（此前扫全文，沉底也算通过）
+- [x] 修复 `check-secrets.py`：新增 RFC1918 内网 IPv4 扫描（此前红线禁 IP 无执行守卫）；
+      `host/host.conf`（真值指定存放地，不入库）在 `--all` 模式按文件名放行；
+      `docs/SECRETS.md` §4 同步为四类命中
+- [x] 自检全绿：check-docs 16 篇 / check-secrets --all 35 个文件 / py_compile 4 个 /
+      PS Parser 解析通过 / `bootstrap-openssh.ps1` 纯 ASCII（0 非 ASCII 字节）/
+      正负用例实测（追加换行、Match 插入、IP 正则边界、沉底引言块报错）
 
 ## 批次 2：建仓入库（2026-11-01）
 
@@ -65,6 +88,10 @@
   尚未建远端**：等用户操作。建远端后需要
   ① 把 README 的 logo 从相对路径换成 `raw.githubusercontent.com` 绝对地址
   ② CI 徽章才会生效。
+- **审查遗留（2026-11-01，低危，未修）**：
+  ① `check-secrets.py` 的 `PLACEHOLDER_USER` 里 `Your` 分支被 `You` 前缀覆盖（冗余，无行为影响）；
+  ② `check-docs.py` 把围栏代码块内行首 `#` 当标题计入锚点（只会放宽不会误报，无害）；
+  ③ `ci.yml` 的 PowerShell 解析步骤硬编码 `bootstrap-openssh.ps1` 单文件（新增 ps1 时需补）。
 
 ## 脱敏口径（本轮已执行）
 
