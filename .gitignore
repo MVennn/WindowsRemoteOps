@@ -1,0 +1,69 @@
+# ---------------------------------------------------------------------------
+# WindowsRemoteOps —— 版本控制忽略规则
+#
+# 原则：**脚本与文档一律入库**；只排除「主机配置」「凭据」「运行残留」。
+# ---------------------------------------------------------------------------
+
+# --- 主机配置（每台主机一份，含主机名/用户名/端口，绝不入库）---
+host/host.conf
+**/host.conf
+!host/host.conf.example
+
+# --- 凭据 ---
+*.key
+*.key.orig
+*.crt
+*.crt.orig
+*.pem
+*.p12
+*.pfx
+*.env
+.env
+.env.*
+!*.env.example
+id_rsa*
+id_ed25519*
+known_hosts*
+
+# --- 运行产物与日志 ---
+*.log
+*.log.*
+*.pid
+*.sock
+*.tmp
+*.bak
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Python 缓存 ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Node（若后续加前端诊断页）---
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# --- 文档自检的临时输出 ---
+report*.md
+REPORT*.md
+!docs/**
+findings*.json
+
+# --- 本地索引与编辑器 ---
+.codegraph/
+.idea/
+.vscode/
+*.code-workspace
+
+# --- 本地工作区（临时产物、台账、真机实测记录，不入库）---
+/.work/

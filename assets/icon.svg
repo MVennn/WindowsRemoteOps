@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="512" height="512" role="img" aria-label="WindowsRemoteOps">
+  <defs>
+    <linearGradient id="bg" gradientUnits="userSpaceOnUse" x1="54" y1="0" x2="54" y2="108">
+      <stop offset="0" stop-color="#2B3242"/>
+      <stop offset="1" stop-color="#161A22"/>
+    </linearGradient>
+    <linearGradient id="line" gradientUnits="userSpaceOnUse" x1="20" y1="82" x2="88" y2="26">
+      <stop offset="0" stop-color="#FFC24A"/>
+      <stop offset="1" stop-color="#FF7A00"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="108" height="108" rx="24" ry="24" fill="url(#bg)"/>
+  <g stroke="url(#line)" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <rect x="20" y="26" width="68" height="56" rx="8" stroke-width="6"/>
+    <path d="M26,42 L82,42" stroke-width="4"/>
+    <path d="M34,54 L44,62 L34,70" stroke-width="6"/>
+    <path d="M52,70 L66,70" stroke-width="6"/>
+  </g>
+  <g fill="url(#line)">
+    <circle cx="30" cy="34" r="2.2"/>
+    <circle cx="38" cy="34" r="2.2"/>
+    <circle cx="46" cy="34" r="2.2"/>
+  </g>
+</svg>

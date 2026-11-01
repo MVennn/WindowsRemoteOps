@@ -1,0 +1,21 @@
+# 统一按 LF 检出。
+#
+# 为什么必须锁死：本仓的 host/*.ps1 要拷到 Windows 主机上执行，
+# 而 tools/ 下的 Python 与 CI 跑在 Linux 上；混用 CRLF 会让脚本出现
+# `\r` 残留（PowerShell 能容忍，sh 与 python 不能）。
+# Windows 上 `core.autocrlf=true` 会在 checkout 时把 LF 转成 CRLF —— 这里显式覆盖掉。
+* text=auto eol=lf
+
+# 二进制文件不参与任何转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.gz binary
+*.tgz binary
+*.zip binary
+*.tar binary
+*.woff binary
+*.woff2 binary

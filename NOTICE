@@ -1,0 +1,51 @@
+WindowsRemoteOps
+Copyright 2026 M.Venn
+
+This product is licensed under the MIT License. See the LICENSE file in the
+repository root for the full text.
+
+==============================================================================
+Third-party software and services
+==============================================================================
+
+This repository contains **no third-party source code**. It configures and
+drives the following components, each under its own license:
+
+- OpenSSH (https://www.openssh.com/)
+  The SSH client and server this repository enables and uses. The Windows
+  build shipped as the `OpenSSH.Server` / `OpenSSH.Client` optional features
+  is distributed by Microsoft.
+  Licensed under a BSD-style license (OpenBSD).
+  Why used: it is the transport for every remote operation in this repo.
+
+- OpenSSH for Windows (https://github.com/PowerShell/Win32-OpenSSH)
+  The standalone MSI port used only as a fallback when the optional feature
+  is unavailable. This repository does not redistribute it.
+  Licensed under the MIT License (Microsoft's port) over the upstream
+  BSD-style OpenSSH code.
+  Why used: older or trimmed Windows images may lack the optional feature.
+
+- PowerShell (https://github.com/PowerShell/PowerShell)
+  The default shell on the remote side. Windows PowerShell 5.1 ships with
+  Windows; PowerShell 7 is optional.
+  Licensed under the MIT License (PowerShell 7).
+  Why used: `host/` scripts are PowerShell.
+
+- Python (https://www.python.org/)
+  Runtime for `tools/` (documentation and secret checks). Standard library
+  only, except `tools/make_social_preview.py` which uses numpy and Pillow.
+  Licensed under the Python Software Foundation License.
+  Why used: the repository's self-checks run in CI on Linux.
+
+- Windows (https://www.microsoft.com/windows)
+  The target operating system. No Microsoft code is redistributed here.
+
+==============================================================================
+Credentials
+==============================================================================
+
+This repository stores **no credentials**. SSH private keys stay in the
+operator's `~/.ssh/`; host names, user names and ports live in
+`host/host.conf`, which is not tracked by git.
+
+See docs/SECRETS.md for the location index.
