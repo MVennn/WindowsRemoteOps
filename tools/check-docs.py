@@ -27,6 +27,9 @@ FROZEN_DIRS = ("docs/archive/", "docs/split/", "archive/")
 SKIP_EXT = {".png", ".jpg", ".jpeg", ".gif", ".ico", ".pdf", ".mrs", ".gz", ".pyc", ".woff", ".woff2"}
 LINK = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 HAS_ONE_LINER = re.compile(r"一句话")
+# DOC-RULES：引言块必须在**开头**。只查文件头部若干行 —— 若扫全文，一句话沉到
+# 文档末尾也算通过，检查就形同虚设（漏报）。现有文档全部在第 3 行。
+ONE_LINER_HEAD = 10
 EXAMPLE = re.compile(r"^文档名\.md#")
 
 
@@ -106,7 +109,8 @@ def main() -> int:
             if frag and target.endswith(".md") and frag not in anchor_map.get(target, set()):
                 problems.append(f"{rel}: 目标锚点不存在 → {link}")
         # 根 README 是面向用户的门面（对齐系列仓门面 README 的格式），不套文档引言块规则
-        if (not HAS_ONE_LINER.search(s)
+        head_lines = s.splitlines()[:ONE_LINER_HEAD]
+        if (not any(HAS_ONE_LINER.search(line) for line in head_lines)
                 and rel != "README.md"
                 and rel != "docs/DOC-RULES.md"
                 and not rel.startswith("docs/release-notes/")):

@@ -49,10 +49,20 @@ PATTERNS = [
         r"https?://[^\s'\"<>]+(?:token|subscribe|subscription)=[A-Za-z0-9._~-]{8,}", re.I)),
     # 本机用户目录：Windows 正斜杠与反斜杠两种写法
     ("本机用户目录", re.compile(r"[A-Za-z]:[\\/]Users[\\/][A-Za-z0-9._-]+")),
+    # RFC1918 内网地址（AGENTS.md 脱敏红线明确禁写 IP）。只覆盖三段私有范围，
+    # 127.0.0.1（文档里正当使用）与组播/版本号形态不在其中。
+    ("内网 IPv4", re.compile(
+        r"\b(?:10\.\d{1,3}\.\d{1,3}\.\d{1,3}"
+        r"|172\.(?:1[6-9]|2[0-9]|3[01])\.\d{1,3}\.\d{1,3}"
+        r"|192\.168\.\d{1,3}\.\d{1,3})\b")),
     # 真实邮箱域名（GitHub noreply 不含这些域名，不会误伤）
     ("真实邮箱", re.compile(
         r"\b[A-Za-z0-9._%+-]+@(?:qq|163|126|gmail|outlook|hotmail|foxmail|sina|sohu)\.com\b")),
 ]
+
+# 真值的**指定存放地**：--all 模式扫工作树时会经过它，必须放行（它已被 .gitignore
+# 排除，不会进版本库；万一被提交，默认模式扫已跟踪文件仍会报出来）。
+SKIP_FILES = {"host/host.conf"}
 
 # 变更说明里引用泄漏原文是必要的（否则读者不知道该改什么），但真值仍要遮掉。
 # 用户名位置被 `...` / `<...>` 取代，或用户名后紧跟 `\...` 截断的写法，视为已脱敏的
@@ -107,6 +117,8 @@ def main() -> int:
             continue
         parts = rel.replace("\\", "/").split("/")
         if any(p in SKIP_DIRS for p in parts[:-1]):
+            continue
+        if rel.replace("\\", "/") in SKIP_FILES:
             continue
         if base_skip(rel):
             continue
