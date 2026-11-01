@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/logo.png" width="128" alt="WindowsRemoteOps">
+<img src="https://raw.githubusercontent.com/MVennn/WindowsRemoteOps/main/assets/logo.png" width="128" alt="WindowsRemoteOps">
 
 # WindowsRemoteOps
 
