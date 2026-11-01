@@ -135,7 +135,17 @@ try {
 }
 catch {
     Write-Warn "Could not enumerate the Administrators group: $($_.Exception.Message)"
-    Write-Warn "Assuming the account is NOT an administrator."
+    if ($User -ieq $env:USERNAME) {
+        # The process token already answers the question: this script refuses
+        # to run unelevated, and an elevated token comes from an admin account.
+        $isAdminAccount = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+        Write-Warn "Falling back to the process token check; admin = $isAdminAccount"
+    }
+    else {
+        # Guessing wrong here means the key lands in the file sshd never reads
+        # for this account (PITFALLS P2). Stop instead of writing it.
+        Fail "Cannot determine whether '$User' is an administrator, so the correct authorized_keys file is unknown. Check with 'net localgroup administrators' and re-run."
+    }
 }
 if ($isAdminAccount) {
     Write-Ok "Account '$User' is in the local Administrators group"
@@ -189,14 +199,19 @@ else {
     # still reads Enabled=True - so never trust the existing rule, force it.
     # Do NOT try New-NetFirewallRule as a fallback: the name already exists and
     # the error would be swallowed by -ErrorAction SilentlyContinue.
-    if ($PSCmdlet.ShouldProcess($ruleName, "Force Enabled=True, Profile=Any, Action=Allow")) {
+    if ($PSCmdlet.ShouldProcess($ruleName, "Force Enabled=True, Profile=Any, Action=Allow, LocalPort=$Port")) {
         Set-NetFirewallRule -Name $ruleName -Enabled True -Profile Any -Action Allow
-        Write-Ok "Updated firewall rule $ruleName (profile Any)"
+        # The port lives on the associated port filter, not on the rule itself:
+        # Set-NetFirewallRule cannot change it, so a stale port (e.g. 22 from
+        # the capability) would stay in place while the script reports -Port
+        # as applied. Rewrite the filter explicitly, idempotently.
+        $null = Get-NetFirewallRule -Name $ruleName | Set-NetFirewallPortFilter -Protocol TCP -LocalPort $Port
+        Write-Ok "Updated firewall rule $ruleName (TCP $Port, profile Any)"
     }
 }
 
-$profile = Get-NetConnectionProfile -ErrorAction SilentlyContinue
-foreach ($p in $profile) {
+$netProfiles = Get-NetConnectionProfile -ErrorAction SilentlyContinue
+foreach ($p in $netProfiles) {
     if ($p.NetworkCategory -eq "Public") {
         Write-Warn ("Network '" + $p.Name + "' is on the Public profile; the rule may not apply. Consider setting it to Private.")
     }
@@ -239,11 +254,18 @@ if (-not (Test-Path -LiteralPath $authDir)) {
 }
 
 $already = $false
+$needsNewline = $false
 if (Test-Path -LiteralPath $authFile) {
-    $existing = Get-Content -LiteralPath $authFile -ErrorAction SilentlyContinue
-    foreach ($line in $existing) {
-        $parts = ($line.Trim() -split '\s+')
-        if ($parts.Count -ge 2 -and $parts[1] -eq $keyBody) { $already = $true; break }
+    $raw = Get-Content -LiteralPath $authFile -Raw -ErrorAction SilentlyContinue
+    if (-not [string]::IsNullOrEmpty($raw)) {
+        # Add-Content never prepends a newline: if the file does not end with
+        # one, the new key would be glued to the last line and destroy that
+        # entry too. Remember to emit a line break first.
+        $needsNewline = -not $raw.EndsWith("`n")
+        foreach ($line in ($raw -split "`r?`n")) {
+            $parts = ($line.Trim() -split '\s+')
+            if ($parts.Count -ge 2 -and $parts[1] -eq $keyBody) { $already = $true; break }
+        }
     }
 }
 if ($already) {
@@ -251,7 +273,8 @@ if ($already) {
 }
 else {
     if ($PSCmdlet.ShouldProcess($authFile, "Append public key")) {
-        Add-Content -LiteralPath $authFile -Value $keyLine -Encoding ASCII
+        $value = if ($needsNewline) { "`r`n" + $keyLine } else { $keyLine }
+        Add-Content -LiteralPath $authFile -Value $value -Encoding ASCII
         Write-Ok "Appended key to $authFile"
     }
 }
@@ -262,7 +285,12 @@ if ($isAdminAccount) {
         # Use well-known SIDs instead of group names: "Administrators" / "SYSTEM"
         # are localized on non-English Windows and would not resolve.
         #   S-1-5-32-544 = BUILTIN\Administrators, S-1-5-18 = NT AUTHORITY\SYSTEM
-        $null = icacls $authFile /inheritance:r /grant "*S-1-5-32-544:F" /grant "*S-1-5-18:F" 2>&1
+        $null = icacls $authFile /inheritance:r /grant "*S-1-5-32-544:F" /grant "*S-1-5-18:F"
+        if ($LASTEXITCODE -ne 0) {
+            # A too-permissive ACL makes sshd silently ignore this file
+            # (PITFALLS P1) - that must not look like success.
+            Fail "icacls could not tighten the ACL on $authFile (exit code $LASTEXITCODE). sshd would silently ignore this file - see docs/PITFALLS.md P1."
+        }
         Write-Ok "ACL restricted to Administrators and SYSTEM"
     }
 }
@@ -291,16 +319,44 @@ if ($DisablePasswordAuth) {
                 $text = [regex]::Replace($text, $pattern, "$directive no")
             }
             else {
-                $text = $text.TrimEnd() + "`r`n$directive no`r`n"
+                # Appending at the very end would put the directive inside a
+                # "Match" block when the config ends with one (the Windows
+                # default does). Inside Match it only affects those connections
+                # and password auth stays on in the main scope (PITFALLS P11).
+                # Insert above the first top-level Match line instead.
+                $matchLine = [regex]::Match($text, "(?mi)^\s*match\b")
+                $line = "$directive no`r`n"
+                if ($matchLine.Success) {
+                    $text = $text.Substring(0, $matchLine.Index) + $line + $text.Substring($matchLine.Index)
+                }
+                else {
+                    $text = $text.TrimEnd() + "`r`n" + $line
+                }
             }
             Write-Ok "$directive -> no"
         }
         Set-Content -LiteralPath $configPath -Value $text -Encoding ASCII -NoNewline
 
+        # Validate before restarting: a config sshd cannot parse would leave the
+        # service down. On failure, put the backup back and stop - the machine
+        # then keeps its previous (working) authentication configuration.
+        $sshdExe = Join-Path $env:WinDir "System32\OpenSSH\sshd.exe"
+        if (Test-Path -LiteralPath $sshdExe) {
+            & $sshdExe -t
+            if ($LASTEXITCODE -ne 0) {
+                Copy-Item -LiteralPath $backup -Destination $configPath -Force
+                Fail "sshd rejected the new sshd_config (exit code $LASTEXITCODE); restored the backup. Nothing else was changed."
+            }
+        }
+
         # -Force is required: a plain Restart-Service fails with
         # ServiceHasDependentServices and silently leaves the old config loaded.
         Restart-Service -Name sshd -Force
+        if ((Get-Service -Name sshd).Status -ne "Running") {
+            Fail "sshd did not come back to Running after the restart. Restore the backup: Copy-Item '$backup' '$configPath' -Force"
+        }
         Write-Ok "sshd restarted; only publickey authentication is accepted now"
+        Write-Warn "Verify from the operator machine that password auth is really gone (docs/PITFALLS.md P11) - do not trust the config file alone."
     }
 }
 
@@ -308,7 +364,8 @@ if ($DisablePasswordAuth) {
 Write-Host ""
 Write-Step "Summary"
 Write-Host ("    capability : " + $capability.Name)
-Write-Host ("    service    : " + (Get-Service -Name sshd).Status)
+$svcSummary = Get-Service -Name sshd -ErrorAction SilentlyContinue
+Write-Host ("    service    : " + $(if ($null -ne $svcSummary) { $svcSummary.Status } else { "not installed" }))
 Write-Host ("    account    : " + $User + " (admin: " + $isAdminAccount + ")")
 Write-Host ("    key file   : " + $authFile)
 Write-Host ("    port       : " + $Port)
