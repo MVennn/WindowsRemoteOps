@@ -196,11 +196,11 @@ def shutil_which(name: str) -> bool:
 
 def main() -> int:
     # 控制台代码页不是 UTF-8（中文 Windows 默认 GBK）且输出被重定向 / 管道时，
-    # ✓/✗ 会让 print 直接抛 UnicodeEncodeError，把诊断输出拦腰截断。
+    # [OK]/[FAIL] 会让 print 直接抛 UnicodeEncodeError，把诊断输出拦腰截断。
     # 统一按 UTF-8 输出、不可编码字符用替换符，保证失败时也能拿到完整报告。
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
-            stream.reconfigure(encoding="utf-8", errors="replace")
+            stream.reconfigure(errors="replace")
 
     parser = argparse.ArgumentParser(description="验证到 Windows 主机的 SSH 通道")
     parser.add_argument("--conf", default=CONF_DEFAULT, help="主机配置路径（默认 host/host.conf）")
@@ -217,7 +217,7 @@ def main() -> int:
     try:
         conf = read_conf(args.conf) if (need_conf or os.path.isfile(args.conf)) else {}
     except ConfError as exc:
-        print("✗ %s" % exc, file=sys.stderr)
+        print("[FAIL] %s" % exc, file=sys.stderr)
         print("  条目：T8", file=sys.stderr)
         return 2
 
@@ -229,13 +229,13 @@ def main() -> int:
         try:
             args.port = int(conf.get("port") or 22)
         except ValueError:
-            print("✗ %s 里的 port 不是数字：%s" % (args.conf, conf.get("port")), file=sys.stderr)
+            print("[FAIL] %s 里的 port 不是数字：%s" % (args.conf, conf.get("port")), file=sys.stderr)
             print("  条目：T8", file=sys.stderr)
             return 2
     args.identity = args.identity or conf.get("identity", "")
 
     if is_placeholder(args.host) or is_placeholder(args.user):
-        print("✗ host / user 仍是占位符，或缺失。", file=sys.stderr)
+        print("[FAIL] host / user 仍是占位符，或缺失。", file=sys.stderr)
         print("  在 %s 里填真值，或用 --host / --user 覆盖。条目：T8" % args.conf, file=sys.stderr)
         return 2
 
@@ -245,10 +245,10 @@ def main() -> int:
 
     ok, detail = tcp_probe(args.host, args.port)
     if not ok:
-        print("✗ TCP %d 不可达：%s" % (args.port, detail))
+        print("[FAIL] TCP %d 不可达：%s" % (args.port, detail))
         print("  条目：T2（防火墙 / 网络位置 / 地址不对）")
         return 1
-    print("✓ TCP %d 可达%s" % (args.port, ("，横幅：" + detail) if detail else ""))
+    print("[OK] TCP %d 可达%s" % (args.port, ("，横幅：" + detail) if detail else ""))
 
     if args.dry_run:
         print("-" * 60)
@@ -270,17 +270,17 @@ def main() -> int:
     for name, fn in checks:
         passed, detail = fn()
         if passed:
-            print("✓ %s：%s" % (name, detail))
+            print("[OK] %s：%s" % (name, detail))
         else:
-            print("✗ %s：%s" % (name, detail))
+            print("[FAIL] %s：%s" % (name, detail))
             print("  条目：%s" % hint_for(detail))
             failed.append(name)
 
     print("-" * 60)
     if failed:
-        print("✗ %d/%d 项失败：%s" % (len(failed), len(checks), "、".join(failed)))
+        print("[FAIL] %d/%d 项失败：%s" % (len(failed), len(checks), "、".join(failed)))
         return 1
-    print("✓ 四项全部通过，通道可用。")
+    print("[OK] 四项全部通过，通道可用。")
     print("  下一步：确认密钥登录稳定后，再用 -DisablePasswordAuth 关闭密码认证。")
     return 0
 

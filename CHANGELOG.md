@@ -11,6 +11,7 @@
 
 ### 门禁脚本 GBK 控制台自毁修复（2026-11-04）
 
+- 同一口径覆盖 `tools/verify-host.py`：本地 `stream` 版 guard 同样去掉强制 UTF-8，保留控制台原生编码 + `errors="replace"`，结论行改 ASCII。
 - 修 `tools/check-docs.py`、`tools/check-secrets.py`、`tools/make_social_preview.py` 的结论行 `✓` / `✗` / `⚠` → ASCII `[OK]` / `[FAIL]` / `[!]`：Windows 中文控制台
   （cp936）下这些字符不在 GBK 码表，`print` 抛 `UnicodeEncodeError`，脚本即便检查全过也以
   **退出码 1** 结束；`python -I` 会忽略 `PYTHONIOENCODING` / `PYTHONUTF8`，环境变量救不回来，
