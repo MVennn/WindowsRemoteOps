@@ -7,6 +7,13 @@
 
 ---
 
+## [未发布]
+
+### gitignore 补全私钥名与门面脚本提示（2026-11-04）
+
+- `.gitignore` 补 `id_ecdsa*` / `id_dsa*` / `ssh_host_*_key*`（无后缀私钥名覆盖不全）
+- `tools/make_social_preview.py` 缺 numpy/Pillow 时给出安装提示
+
 ## [0.1.0] — 2026-11-01
 
 面向用户的说明见 [docs/release-notes/0.1.0.md](docs/release-notes/0.1.0.md)。

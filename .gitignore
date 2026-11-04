@@ -23,6 +23,9 @@ host/host.conf
 !*.env.example
 id_rsa*
 id_ed25519*
+id_ecdsa*
+id_dsa*
+ssh_host_*_key*
 known_hosts*
 
 # --- 运行产物与日志 ---
