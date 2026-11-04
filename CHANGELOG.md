@@ -14,6 +14,11 @@
 - `.gitignore` 补 `id_ecdsa*` / `id_dsa*` / `ssh_host_*_key*`（无后缀私钥名覆盖不全）
 - `tools/make_social_preview.py` 缺 numpy/Pillow 时给出安装提示
 
+### P3 清理（2026-11-04 审查遗留项）
+
+- `host/bootstrap-openssh.ps1` 删除死变量 `$script:Failed`（赋值后从未置真，末尾分支恒假），
+  行为不变
+
 ## [0.1.0] — 2026-11-01
 
 面向用户的说明见 [docs/release-notes/0.1.0.md](docs/release-notes/0.1.0.md)。

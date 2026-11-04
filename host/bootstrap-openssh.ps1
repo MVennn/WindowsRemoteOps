@@ -62,8 +62,6 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$script:Failed = $false
-
 function Write-Step {
     param([string]$Message)
     Write-Host "[*] $Message" -ForegroundColor Cyan
@@ -373,5 +371,4 @@ Write-Host ""
 Write-Host "Next: from the operator machine, run tools/verify-host.py" -ForegroundColor Cyan
 Write-Host "Do NOT disable password authentication before key login is verified." -ForegroundColor Yellow
 
-if ($script:Failed) { exit 1 }
 exit 0
