@@ -4,7 +4,7 @@
 # 用法：复制本文件为 host.conf，把占位符换成真值。
 #   cp host/host.conf.example host/host.conf
 #
-# 读取顺序（tools/verify-host.py）：命令行参数 → 本文件 → 占位符默认值。
+# 读取顺序（tools/verify-host.py）：命令行参数 → 本文件；host/user 仍是占位符时报 T8 退出码 2。
 # 字段说明见 docs/ARCHITECTURE.md §6。
 #
 # 注意：host.conf 被 .gitignore 排除。不要把真值提交进版本库。

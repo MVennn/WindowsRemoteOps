@@ -28,7 +28,7 @@
 | 防火墙规则 | `OpenSSH-Server-In-TCP` 存在则强制 `Enabled=True, Profile=Any, Action=Allow`，不存在则新建（TCP 22） | ✅ | `Remove-NetFirewallRule` |
 | 公钥 | 追加一行到 `administrators_authorized_keys`（管理员账户）或 `~/.ssh/authorized_keys`（普通账户） | ✅ 已有同一把则不重复追加 | 删掉那一行 |
 | ACL | 对 `administrators_authorized_keys` 断继承，只留 `Administrators` + `SYSTEM` | ✅ | 无（默认就是收紧状态） |
-| `sshd_config` | **默认不动**。只有显式加 `-DisablePasswordAuth` 才把 `PasswordAuthentication` 改成 `no` 并重启 `sshd` | ✅ | 改回 `yes` 并重启 |
+| `sshd_config` | **默认不动**。只有显式加 `-DisablePasswordAuth` 才把 `PasswordAuthentication` 与 `KbdInteractiveAuthentication` 都改成 `no` 并重启 `sshd` | ✅ | 改回 `yes` 并重启 |
 
 > 公钥写哪个文件取决于**登录账户是不是管理员**。这是最常见的失败原因，
 > 见 [PITFALLS.md](PITFALLS.md) P1。
@@ -84,7 +84,7 @@ Remove-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
 
 ## 6. 配置怎么读
 
-`tools/verify-host.py` 的取值顺序：**命令行参数 → `host/host.conf` → 占位符默认值**。
+`tools/verify-host.py` 的取值顺序：**命令行参数 → `host/host.conf`**；`host` / `user` 缺失或仍是占位符直接报 T8、退出码 2；仅 `port` 默认 22、`identity` 默认交给 ssh 自己找。
 
 `host/host.conf` 用 `key=value` 行格式，只认这几个键：
 

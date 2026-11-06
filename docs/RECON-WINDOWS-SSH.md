@@ -130,13 +130,14 @@ RustDesk、MeshCentral 这类工具解决的是「**图形界面接管 + 跨公�
 
 ## 8. 验收
 
-三项全过才算开通成功：
+四项全过才算开通成功：
 
-1. `ssh <HOST-USER>@<HOST-IP> hostname` 返回目标机主机名，**且不提示输入密码**
-2. 一个临时文件传到目标机、在那边算哈希比对、再删除（双向传输可用）
-3. 能执行 PowerShell 而不只是 cmd（`$PSVersionTable.PSVersion` 有输出）
+1. 密钥登录：`ssh <HOST-USER>@<HOST-IP> hostname` 返回主机名，**且不提示输入密码**
+2. 命令执行：远端 `hostname` 正常返回
+3. 文件传输：一个临时文件传到目标机、在那边算哈希比对、再删除
+4. PowerShell：能执行 `$PSVersionTable.PSVersion` 而不只是 cmd
 
-`python tools/verify-host.py --conf host/host.conf` 就是把这三项做成可执行版本。
+`python tools/verify-host.py --conf host/host.conf` 就是把这四项做成可执行版本（退出码 0 = 四项全通过）。
 
 ## 9. 待确认项
 
