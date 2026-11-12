@@ -7,6 +7,26 @@
 
 ---
 
+## [0.1.2] — 2026-11-12
+
+面向用户的说明见 [docs/release-notes/0.1.2.md](docs/release-notes/0.1.2.md)。
+
+### 文档修订：家庭版 RDP 边界与 -Port 校验口径（2026-11-12）
+
+- 调整 `README.md`、`SECURITY.md`、`docs/ARCHITECTURE.md` 的「不做图形界面接管」边界 ——
+  补一句「家庭版不能做 RDP 服务端」，指向 `docs/RECON-WINDOWS-SSH.md` 的方案 C。
+- 调整 `README.md` 的踩点结论与排错清单 —— 踩点结论补「RDP 方案在家庭版做不了服务端」；
+  排错清单里原来的「家庭版没有 RDP」换成「公钥写错文件（管理员 vs 普通账户）」，
+  并补 `docs/` 索引入口与 `tools/verify-host.py` 未做运行时版本守卫的说明。
+- 调整 `docs/TOOLS.md` 的 `-Port` 行 —— 写明脚本标注 `[ValidateRange(1, 65535)]`，
+  越界在参数绑定阶段就报错。
+- 调整 `docs/PITFALLS.md` 的跨仓引用 —— 旧仓名 `ZcodeAIModels` 改为 `ModelBus`。
+- 修订 文档口径批次（`3e0b382`）—— `CHANGELOG.md` 版本号写法改 `X.Y.Z`（`v` 只属 tag）；
+  `docs/ARCHITECTURE.md` 补 `KbdInteractiveAuthentication` 与 `verify-host.py` 取值顺序
+  （`host`/`user` 仍是占位符时报 T8、退出码 2）；`docs/RECON-WINDOWS-SSH.md` 验收由三项拆成
+  四项；`docs/DOC-RULES.md` 的链接示例串改行内代码；`host/host.conf.example` 同步读取顺序。
+- 验证：`python tools/check-docs.py`、`python tools/check-secrets.py` 均退出码 0（19 篇文档链接 / 锚点 / 引言块 / 孤儿全过；36 个文件无凭据）。
+
 ## [0.1.1] — 2026-11-06
 
 面向用户的说明见 [docs/release-notes/0.1.1.md](docs/release-notes/0.1.1.md)。
