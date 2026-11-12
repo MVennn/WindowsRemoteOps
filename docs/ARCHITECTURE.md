@@ -40,7 +40,7 @@
 - ❌ 不做端口转发、不碰路由器 NAT、不把 22 暴露到公网
 - ❌ 不做反向隧道（chisel / frp 这类）—— 局域网直连用不上，跨网段是另一件事
 - ❌ 不安装第三方远程控制软件（RustDesk / MeshCentral 等）
-- ❌ 不接管图形界面 —— 要 GUI 请自行使用 RDP，本仓不包装它
+- ❌ 不接管图形界面 —— 要 GUI 请自行使用 RDP，本仓不包装它（**家庭版不能做 RDP 服务端**，见 [RECON-WINDOWS-SSH.md](RECON-WINDOWS-SSH.md) 的方案 C）
 - ❌ 不改 UAC、不改组策略、不创建账户、不动用户密码
 - ❌ 不改默认 shell（想换成 PowerShell 是个人偏好，见 [TROUBLESHOOTING.md](TROUBLESHOOTING.md) T6）
 

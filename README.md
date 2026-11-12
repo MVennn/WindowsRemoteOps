@@ -22,18 +22,18 @@
 
 **开通与验证**（`host/`、`tools/`）：`host/bootstrap-openssh.ps1` 在目标机上一把做完「装能力、设自启、放行端口、写公钥、收紧 ACL」；`tools/verify-host.py` 在操作机上验连通、验密钥、验文件传输、验 PowerShell 能跑。
 
-**踩点结论**（`docs/RECON-WINDOWS-SSH.md`）：从网络侧怎么判断一台封闭主机的状态（端口全关但 ping 通意味着什么）、四个接入方案的对比与取舍、为什么不该先去 GitHub 找一个远程控制项目。
+**踩点结论**（`docs/RECON-WINDOWS-SSH.md`）：从网络侧怎么判断一台封闭主机的状态（端口全关但 ping 通意味着什么）、四个接入方案的对比与取舍（其中 RDP 方案在家庭版做不了服务端）、为什么不该先去 GitHub 找一个远程控制项目。
 
-**排错与踩坑**（`docs/PITFALLS.md`、`docs/TROUBLESHOOTING.md`）：`administrators_authorized_keys` 的 ACL、默认 shell 不是 PowerShell、家庭版没有 RDP、随机化 MAC 让 DHCP 租约认不出主机 —— 每条都写清「为什么错」和「下次怎么避」。
+**排错与踩坑**（`docs/PITFALLS.md`、`docs/TROUBLESHOOTING.md`）：`administrators_authorized_keys` 的 ACL、公钥写错文件（管理员 vs 普通账户）、默认 shell 不是 PowerShell、随机化 MAC 让 DHCP 租约认不出主机 —— 每条都写清「为什么错」和「下次怎么避」。
 
-边界是：**只做开通与运维通道，不做图形界面接管**。要 GUI 请用 RDP，本仓不包装它。会改目标机哪些状态见 [docs/ARCHITECTURE.md](https://github.com/MVennn/WindowsRemoteOps/blob/main/docs/ARCHITECTURE.md)，每个脚本干什么见 [docs/TOOLS.md](https://github.com/MVennn/WindowsRemoteOps/blob/main/docs/TOOLS.md)。
+边界是：**只做开通与运维通道，不做图形界面接管**。要 GUI 请用 RDP，本仓不包装它。会改目标机哪些状态见 [docs/ARCHITECTURE.md](https://github.com/MVennn/WindowsRemoteOps/blob/main/docs/ARCHITECTURE.md)，每个脚本干什么见 [docs/TOOLS.md](https://github.com/MVennn/WindowsRemoteOps/blob/main/docs/TOOLS.md)，docs/ 下 8 篇正文的分类索引见 [docs/ 索引](https://github.com/MVennn/WindowsRemoteOps/blob/main/docs/README.md)。
 
 ## 环境要求
 
 | 项 | 要求 |
 |---|---|
 | 目标机 | Windows 10 1809+ 或 Windows 11；**管理员权限**（装可选功能要） |
-| 操作机 | 任意带 `ssh` 客户端的系统（Windows 10+ 自带 OpenSSH Client）；`tools/verify-host.py` 需 Python 3.8+ |
+| 操作机 | 任意带 `ssh` 客户端的系统（Windows 10+ 自带 OpenSSH Client）；`tools/verify-host.py` 需 Python 3.8+（未做运行时版本守卫，低于 3.8 的报错以实际为准） |
 | 网络 | 操作机能直连目标机的 22 端口（同一局域网即可，不需要端口转发） |
 | 目标机能力 | `OpenSSH.Server` 可选功能；缺失时走 [docs/RECON-WINDOWS-SSH.md](https://github.com/MVennn/WindowsRemoteOps/blob/main/docs/RECON-WINDOWS-SSH.md) 的方案 D |
 

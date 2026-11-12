@@ -32,7 +32,7 @@
 - ❌ 不动 UAC 设置、不改组策略
 - ❌ 不做端口转发、不把 22 暴露到公网
 - ❌ 不安装第三方远程控制软件
-- ❌ 不接管图形界面（要 GUI 请自行使用 RDP）
+- ❌ 不接管图形界面（要 GUI 请自行使用 RDP；**家庭版不能做 RDP 服务端**，取舍见 [docs/RECON-WINDOWS-SSH.md](docs/RECON-WINDOWS-SSH.md) 的方案 C）
 
 装之前请先看 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) 的「会改什么」一节。
 

@@ -45,7 +45,7 @@ powershell -ExecutionPolicy Bypass -File .\bootstrap-openssh.ps1 -PublicKeyFile 
 |---|---|---|
 | `-PublicKeyFile` | ✅ | 公钥文件路径（`.pub`）。内容会被追加到正确的授权文件 |
 | `-User` | ❌ | 公钥归属的账户，默认当前登录用户；**决定写哪个授权文件** |
-| `-Port` | ❌ | 防火墙放行端口，默认 22 |
+| `-Port` | ❌ | 防火墙放行端口，默认 22；脚本标注 `[ValidateRange(1, 65535)]`，越界在参数绑定阶段就报错 |
 | `-DisablePasswordAuth` | ❌ | 显式要求关掉密码认证与 keyboard-interactive（两条都写 `no`）并重启 `sshd`；默认不动 `sshd_config` |
 | `-WhatIf` | ❌ | 只打印将要做什么，不执行 |
 
