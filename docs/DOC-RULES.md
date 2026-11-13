@@ -22,7 +22,7 @@ docs/ 分四类（索引见 [README.md](README.md)）：
 
 ### 文件命名：全大写 + 连字符
 
-`docs/` 下的 `.md` 一律 **全大写 + 连字符**：`MAINTENANCE.md`、`DOC-RULES.md`、`RECON-WINDOWS-SSH.md`。
+`docs/` 下的 `.md` 一律 **全大写 + 连字符**：`DOC-RULES.md`、`RECON-WINDOWS-SSH.md`、`TROUBLESHOOTING.md`。
 混用驼峰或下划线（`ReconWindowsSsh.md` / `recon_windows_ssh.md`）会让索引排序和全仓搜索都跟着散。
 
 改名三步（顺序别乱）：
